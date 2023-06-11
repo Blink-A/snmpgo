@@ -166,6 +166,10 @@ func (s *SNMP) GetNextRequest(oids Oids) (result Pdu, err error) {
 	pdu := NewPduWithOids(s.args.Version, GetNextRequest, oids)
 	return s.sendPdu(pdu)
 }
+func (s *SNMP) SetRequest(varBinds VarBinds) (resp Pdu, err error) {
+	pdu := NewPduWithVarBinds(s.args.Version, SetRequest, varBinds)
+	return s.sendPdu(pdu)
+}
 
 func (s *SNMP) GetBulkRequest(oids Oids, nonRepeaters, maxRepetitions int) (result Pdu, err error) {
 
