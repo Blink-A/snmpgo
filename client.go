@@ -269,14 +269,21 @@ func (s *SNMP) GetBulkWalk(oids Oids, nonRepeaters, maxRepetitions int) (result 
 	resBinds = append(nonRepBinds, resBinds.Sort().Uniq()...)
 	return NewPduWithVarBinds(s.args.Version, GetResponse, resBinds), nil
 }
-func (s *SNMP) GetBulkWalk_test(oids Oids, nonRepeaters, maxRepetitions int) (result Pdu, err error) {
+func (s *SNMP) GetBulkWalk(oids Oids, nonRepeaters, maxRepetitions int) (result Pdu, err error) {
 	var nonRepBinds, resBinds VarBinds
 
 	oids = append(oids[:nonRepeaters], oids[nonRepeaters:].Sort().UniqBase()...)
 	reqOids := make(Oids, len(oids))
 	copy(reqOids, oids)
 
-	for len(reqOids) > 0 {
+maxIterations := 10
+iteration := 0
+
+for len(reqOids) > 0 {
+    iteration++
+    if iteration > maxIterations {
+        break
+    }
 		pdu, err := s.GetBulkRequest(reqOids, nonRepeaters, maxRepetitions)
 		if err != nil {
 			return nil, err
@@ -309,21 +316,15 @@ func (s *SNMP) GetBulkWalk_test(oids Oids, nonRepeaters, maxRepetitions int) (re
 			}
 
 			hasError := false
-count := 0
-for _, val := range matched {
-    if count >= 10 {
-        break
-    }
-    
-    switch val.Variable.(type) {
-    case *NoSucheObject, *NoSucheInstance, *EndOfMibView:
-        hasError = true
-    default:
-        resBinds = append(resBinds, val)
-        reqOids[i] = val.Oid
-        count++
-    }
-}
+			for _, val := range matched {
+				switch val.Variable.(type) {
+				case *NoSucheObject, *NoSucheInstance, *EndOfMibView:
+					hasError = true
+				default:
+					resBinds = append(resBinds, val)
+					reqOids[i] = val.Oid
+				}
+			}
 
 			if hasError || (filled && mLength < maxRepetitions) {
 				reqOids[i] = nil
