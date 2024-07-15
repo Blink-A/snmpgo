@@ -269,7 +269,7 @@ func (s *SNMP) GetBulkWalk(oids Oids, nonRepeaters, maxRepetitions int) (result 
 	resBinds = append(nonRepBinds, resBinds.Sort().Uniq()...)
 	return NewPduWithVarBinds(s.args.Version, GetResponse, resBinds), nil
 }
-func (s *SNMP) GetBulkWalk(oids Oids, nonRepeaters, maxRepetitions int) (result Pdu, err error) {
+func (s *SNMP) GetBulkWalk_test(oids Oids, nonRepeaters, maxRepetitions int) (result Pdu, err error) {
 	var nonRepBinds, resBinds VarBinds
 
 	oids = append(oids[:nonRepeaters], oids[nonRepeaters:].Sort().UniqBase()...)
